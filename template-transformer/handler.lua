@@ -143,6 +143,13 @@ function TemplateTransformerHandler:body_filter(config)
         return
     end
 
+    local headers = res_get_headers()
+    local content_type = headers['Content-Type']
+    if content_type == "application/problem+json" then
+      ngx.log(ngx.DEBUG, string.format("Error coming from Kong"))
+      return
+    end
+
     local chunk, eof = ngx.arg[1], ngx.arg[2]
     if not eof then
       -- sometimes the data comes in chunks and every chunk is a different call
