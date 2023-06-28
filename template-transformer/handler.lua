@@ -144,8 +144,9 @@ function TemplateTransformerHandler:body_filter(config)
     end
 
     local headers = res_get_headers()
+    local internal = headers['Internal']
     local content_type = headers['Content-Type']
-    if content_type == "application/problem+json" then
+    if content_type == "application/problem+json" && internal == 1 then
       ngx.log(ngx.DEBUG, string.format("Error coming from Kong"))
       return
     end
@@ -186,13 +187,13 @@ function TemplateTransformerHandler:body_filter(config)
                                                                                              status = ngx.status,
                                                                                              req_query_string = req_query_string,
                                                                                              route_groups = router_matches.uri_captures}
-        
-        
+
+
         transformed_body = prepare_body(transformed_body)
         ngx.arg[1] = transformed_body
-        if transformed_body == nil or transformed_body == '' then 
+        if transformed_body == nil or transformed_body == '' then
           ngx.log(ngx.DEBUG, string.format("Transformed Body JSON is nil or empty"))
-        else  
+        else
           local status, json_transformed_body = pcall(cjson_decode, transformed_body)
           if status then
             utils.hide_fields(json_transformed_body, config.hidden_fields)
