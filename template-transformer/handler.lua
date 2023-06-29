@@ -170,7 +170,7 @@ function TemplateTransformerHandler:body_filter(config)
         content_type = "application/json"
       end
 
-      if gmatch(content_type, "(application/json)")() then
+      if gmatch(content_type, "(application/json)")() or gmatch(content_type, "(application/problem%+json)")() then
         body = read_json_body(raw_body)
         if body == nil then
           return ngx.ERROR
