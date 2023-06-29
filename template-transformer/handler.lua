@@ -146,7 +146,7 @@ function TemplateTransformerHandler:body_filter(config)
     local headers = res_get_headers()
     local internal = headers['Internal']
     local content_type = headers['Content-Type']
-    if content_type == "application/problem+json" && internal == 1 then
+    if content_type == "application/problem+json" && internal == "true" then
       ngx.log(ngx.DEBUG, string.format("Error coming from Kong"))
       return
     end
