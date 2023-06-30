@@ -15,7 +15,7 @@ local gsub = string.gsub
 local gmatch = string.gmatch
 local TemplateTransformerHandler = {
   PRIORITY = 801,
-  VERSION = "1.3.0"
+  VERSION = "1.3.1"
 }
 
 local template_transformer = require 'kong.plugins.kong-plugin-template-transformer.template_transformer'
@@ -144,8 +144,9 @@ function TemplateTransformerHandler:body_filter(config)
     end
 
     local headers = res_get_headers()
+    local internal = headers['Internal']
     local content_type = headers['Content-Type']
-    if content_type == "application/problem+json" then
+    if content_type == "application/problem+json" and internal == "true" then
       ngx.log(ngx.DEBUG, string.format("Error coming from Kong"))
       return
     end
@@ -169,7 +170,7 @@ function TemplateTransformerHandler:body_filter(config)
         content_type = "application/json"
       end
 
-      if gmatch(content_type, "(application/json)")() then
+      if gmatch(content_type, "(application/json)")() or gmatch(content_type, "(application/problem%+json)")() then
         body = read_json_body(raw_body)
         if body == nil then
           return ngx.ERROR
@@ -186,13 +187,13 @@ function TemplateTransformerHandler:body_filter(config)
                                                                                              status = ngx.status,
                                                                                              req_query_string = req_query_string,
                                                                                              route_groups = router_matches.uri_captures}
-        
-        
+
+
         transformed_body = prepare_body(transformed_body)
         ngx.arg[1] = transformed_body
-        if transformed_body == nil or transformed_body == '' then 
+        if transformed_body == nil or transformed_body == '' then
           ngx.log(ngx.DEBUG, string.format("Transformed Body JSON is nil or empty"))
-        else  
+        else
           local status, json_transformed_body = pcall(cjson_decode, transformed_body)
           if status then
             utils.hide_fields(json_transformed_body, config.hidden_fields)
