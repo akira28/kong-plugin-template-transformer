@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    platform: linux/x86_64
     stdin_open: true
     volumes: 
       - ./:/home/plugin
