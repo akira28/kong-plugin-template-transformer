@@ -134,6 +134,10 @@ function TemplateTransformerHandler:header_filter(config)
 end
 
 function TemplateTransformerHandler:body_filter(config)
+  if kong.response.get_status() >= 200 and kong.response.get_status() < 300 and config.transform_on_error then
+    kong.log.debug("Skip no transform :: ", config.transform_on_error)
+    return
+  end
   if config.response_template and config.response_template ~= "" then
 
     local cache_response = kong.ctx.shared.proxy_cache_hit

@@ -12,6 +12,7 @@ return {
           { response_template = { type = "string", required = false }, },
           { hidden_fields = { type = "array", elements = { type = "string" }, required = false}, },
           { ignore_content_types = { type = "array", elements = { type = "string" }, required = false }, },
+          { transform_on_error = { type = "boolean", default = false, required = false }, },
         }
       }
     }
