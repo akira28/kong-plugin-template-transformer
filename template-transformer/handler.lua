@@ -24,6 +24,7 @@ local utils = require 'kong.plugins.kong-plugin-template-transformer.utils'
 function read_json_body(body)
   if body and body ~= "" then
     body = gsub(body, [[\"]], [[&__escaped__quot;]])
+    body = gsub(body, [[&quot;]], [[&__no__escaped__quot;]])
     body = gsub(body, [[\\]], [[&__escaped__bar;]])
     body = gsub(body, [[\\\r\\\n]], [[&__escaped__eof;]])
     body = gsub(body, [[\\\r]], [[&__escaped__carriage;]])
@@ -59,6 +60,7 @@ function prepare_body(string_body)
   v = gsub(v, "&gt;", ">")
   v = gsub(v, "&quot;", "\"")
   v = gsub(v, "&__escaped__quot;", '\\\"')
+  v = gsub(v, "&__no__escaped__quot;", '&quot;')
   v = gsub(v, "&__escaped__bar;", '\\\\')
   v = gsub(v, "&__escaped__carriage;", '\\\\r')
   v = gsub(v, "&__escaped__eof", '\\\\r\\\\n')
@@ -134,10 +136,6 @@ function TemplateTransformerHandler:header_filter(config)
 end
 
 function TemplateTransformerHandler:body_filter(config)
-  if kong.response.get_status() >= 200 and kong.response.get_status() < 300 and config.transform_on_error then
-    kong.log.debug("Skip no transform :: ", config.transform_on_error)
-    return
-  end
   if config.response_template and config.response_template ~= "" then
 
     local cache_response = kong.ctx.shared.proxy_cache_hit

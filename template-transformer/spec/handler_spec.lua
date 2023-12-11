@@ -295,6 +295,17 @@ describe("Test TemplateTransformerHandler body_filter", function()
     assert.equal("{ \"name\": \"Frango \\\"Contudo\\\" Dentro\" }", ngx.arg[1])
   end)
 
+  it("Should return html entites without encoding", function()
+    local htmlentities = cjson_encode('onclick=\"require(&quot;IntlUtils&quot;).setCookieLocale(&quot;es_LA&quot;, &quot;en_US&quot;)\"')
+    local config = {
+      response_template = "{{ cjson_encode(body) }}"
+    }
+    _G.ngx.ctx.buffer = '{ "html": '..htmlentities..' }'
+    _G.ngx.arg = {'{ "key" : "value" }', true}
+    TemplateTransformerHandler:body_filter(config)
+    assert.equal("{\"html\":\"onclick=\\\"require(&quot;IntlUtils&quot;).setCookieLocale(&quot;es_LA&quot;, &quot;en_US&quot;)\\\"\"}", ngx.arg[1])
+  end)
+
   it("lets you include json on the fly", function()
     local config = {
         response_template = "{% local cjson_encode = require('cjson').encode  %} { \"template\": {{cjson_encode(body.thing)}} }"
