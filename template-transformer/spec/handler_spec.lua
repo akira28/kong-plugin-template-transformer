@@ -337,6 +337,19 @@ describe("Test TemplateTransformerHandler body_filter", function()
     assert.equal('{"template":{"name":"sent"}}', ngx.arg[1]:gsub("%s+", ""))
   end)
 
+  it("lets you include template packages on the fly", function()
+    local config = {
+      response_template = "{% local my_cjson_package = packages.cjson.encode  %} { \"template\": {{my_cjson_package(body.thing)}} }",
+      template_packages = {
+        "cjson"
+      }
+    }
+    _G.ngx.ctx.buffer = '{ "thing"  : {"name": "sent"} }'
+    _G.ngx.arg = {'{ "key" : "value" }', true}
+    TemplateTransformerHandler:body_filter(config)
+    assert.equal('{"template":{"name":"sent"}}', ngx.arg[1]:gsub("%s+", ""))
+  end)
+
   it("should pass status code to template", function()
     local config = {
         response_template = "{ \"status\": {{status}} }"
@@ -517,4 +530,23 @@ describe("Test prepare_content_type", function()
     assert.equal(prepared_body, "application/x%-www%-form%-urlencoded")
   end)
 
+end)
+
+describe("Test get_template_packages", function()
+  it("should return empty table when the payload is an empty array", function()
+    get_template_packages = get_template_packages({{}})
+    assert.equal(table.getn(get_template_packages), 0)
+  end)
+
+  it("should return a table with packages loaded", function()
+    local config = {
+      template_packages = {
+        "cjson"
+      }
+    }
+    get_template_packages = get_template_packages(config)
+
+    assert.equal(type(get_template_packages.cjson.encode), "function")
+    assert.equal(type(get_template_packages.cjson.decode), "function")
+  end)
 end)

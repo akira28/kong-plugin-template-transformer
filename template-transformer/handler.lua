@@ -16,7 +16,7 @@ local gsub = string.gsub
 local gmatch = string.gmatch
 local TemplateTransformerHandler = {
   PRIORITY = 801,
-  VERSION = "2.0.1"
+  VERSION = "2.1.0"
 }
 
 local template_transformer = require 'kong.plugins.kong-plugin-template-transformer.template_transformer'
@@ -80,6 +80,24 @@ function prepare_content_type(content_type)
   return content_type
 end
 
+function get_template_packages(config)
+  local template_packages = {}
+
+  if config.template_packages then
+    local function requiref(module)
+      require(module)
+    end
+
+    for key, package_name in ipairs(config.template_packages) do
+      if (pcall(requiref, package_name)) then
+        template_packages[package_name] = require(package_name)
+      end
+    end
+  end
+
+  return template_packages
+end
+
 function TemplateTransformerHandler:access(config)
   if config.request_template and config.request_template ~= "" then
     local body = nil
@@ -103,7 +121,8 @@ function TemplateTransformerHandler:access(config)
                                                                                         cjson_encode = cjson_encode,
                                                                                         cjson_decode = cjson_decode,
                                                                                         custom_data = ngx.ctx.custom_data,
-                                                                                        route_groups = router_matches.uri_captures}
+                                                                                        route_groups = router_matches.uri_captures,
+                                                                                        packages = get_template_packages(config)}
 
     transformed_body = prepare_body(transformed_body)
 
@@ -186,7 +205,8 @@ function TemplateTransformerHandler:body_filter(config)
                                                                                              mask_field = utils.mask_field,
                                                                                              status = ngx.status,
                                                                                              req_query_string = req_query_string,
-                                                                                             route_groups = router_matches.uri_captures}
+                                                                                             route_groups = router_matches.uri_captures,
+                                                                                             packages = get_template_packages(config)}
 
 
         transformed_body = prepare_body(transformed_body)
