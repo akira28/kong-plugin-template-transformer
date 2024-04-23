@@ -1,5 +1,6 @@
 local cjson = require('cjson.safe').new()
 cjson.decode_array_with_array_mt(true)
+cjson.encode_empty_table_as_object(false)
 local cjson_decode = cjson.decode
 local cjson_encode = cjson.encode
 
@@ -15,7 +16,7 @@ local gsub = string.gsub
 local gmatch = string.gmatch
 local TemplateTransformerHandler = {
   PRIORITY = 801,
-  VERSION = "1.3.1"
+  VERSION = "2.0.1"
 }
 
 local template_transformer = require 'kong.plugins.kong-plugin-template-transformer.template_transformer'
@@ -138,6 +139,11 @@ end
 function TemplateTransformerHandler:body_filter(config)
   if config.response_template and config.response_template ~= "" then
 
+    if kong.response.get_source() ~= "service" then
+      kong.log.debug("Response is from kong itself or an error ocurred. Not applying any transformations.")
+      return
+    end
+
     local cache_response = kong.ctx.shared.proxy_cache_hit
     if cache_response ~= nil then
       -- No need to do anything. Cache response is already transformed.
@@ -175,7 +181,7 @@ function TemplateTransformerHandler:body_filter(config)
       if gmatch(content_type, "(application/json)")() or gmatch(content_type, "(application/problem%+json)")() then
         body = read_json_body(raw_body)
         if body == nil then
-          return ngx.ERROR
+          return kong.response.error(ngx.HTTP_INTERNAL_SERVER_ERROR)
         end
         local req_query_string = req_get_uri_args()
         local router_matches = ngx.ctx.router_matches
