@@ -8,8 +8,8 @@ services:
       dockerfile: Dockerfile
     platform: linux/x86_64
     stdin_open: true
-    volumes: 
-      - ./:/home/plugin
+    volumes:
+      - ./${PROJECT_FOLDER}:/home/plugin
     ports:
       - "8001:8001"
       - "8000:8000"
