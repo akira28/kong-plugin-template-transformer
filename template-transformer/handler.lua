@@ -88,9 +88,9 @@ function get_template_packages(config)
       require(module)
     end
 
-    for key, package_name in ipairs(config.template_packages) do
-      if (pcall(requiref, package_name)) then
-        template_packages[package_name] = require(package_name)
+    for key, package in ipairs(config.template_packages) do
+      if (pcall(requiref, package.module)) then
+        template_packages[package.name] = require(package.module)
       end
     end
   end
