@@ -12,7 +12,17 @@ return {
           { response_template = { type = "string", required = false }, },
           { hidden_fields = { type = "array", elements = { type = "string" }, required = false}, },
           { ignore_content_types = { type = "array", elements = { type = "string" }, required = false }, },
-          { template_packages = { type = "array", elements = { type = "string" }, required = false}, },
+          { template_packages = {
+            type = "array",
+            elements = {
+              type = "record",
+              fields = {
+                { name = { type = "string", required = true }, },
+                { module = { type = "string", required = true }, },
+              },
+            },
+            required = false},
+          },
         }
       }
     }

@@ -236,7 +236,7 @@ describe("Test TemplateTransformerHandler body_filter", function()
 
     kong.ctx.shared.proxy_cache_hit = nil
   end)
-  
+
   it("should set first ngx arg to nil when body is not fully read", function()
     local config = {
         response_template = "hello im a template"
@@ -339,9 +339,9 @@ describe("Test TemplateTransformerHandler body_filter", function()
 
   it("lets you include template packages on the fly", function()
     local config = {
-      response_template = "{% local my_cjson_package = packages.cjson.encode  %} { \"template\": {{my_cjson_package(body.thing)}} }",
+      response_template = "{% local my_cjson_package = packages.cjson_custom.encode  %} { \"template\": {{my_cjson_package(body.thing)}} }",
       template_packages = {
-        "cjson"
+        { name = "cjson_custom", module = "cjson" }
       }
     }
     _G.ngx.ctx.buffer = '{ "thing"  : {"name": "sent"} }'
@@ -541,12 +541,12 @@ describe("Test get_template_packages", function()
   it("should return a table with packages loaded", function()
     local config = {
       template_packages = {
-        "cjson"
+        { name = "cjson_custom", module = "cjson" },
       }
     }
     get_template_packages = get_template_packages(config)
 
-    assert.equal(type(get_template_packages.cjson.encode), "function")
-    assert.equal(type(get_template_packages.cjson.decode), "function")
+    assert.equal(type(get_template_packages.cjson_custom.encode), "function")
+    assert.equal(type(get_template_packages.cjson_custom.decode), "function")
   end)
 end)
